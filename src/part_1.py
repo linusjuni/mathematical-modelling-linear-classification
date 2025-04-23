@@ -1,42 +1,78 @@
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import os
 
 from data_utils import load_data
-from model_utils import train_models, evaluate_models
-from visualization_utils import visualize_weights
+from model_utils import nested_cross_validation, train_model, evaluate_model, save_model, load_model
+from visualization_utils import visualize_weights, visualize_lambda_selection, visualize_performance_by_lambda
 
-train_path = "/Users/linus.juni/Documents/Personal/mathematical-modelling-linear-classification/data/test"
-test_path = "/Users/linus.juni/Documents/Personal/mathematical-modelling-linear-classification/data/train"
+def run_part1():
 
-print("Loading training data...")
-X_train, y_train = load_data(train_path)
-print("Loading test data...")
-X_test, y_test = load_data(test_path)
+    base_path = "/Users/linus.juni/Documents/Personal/mathematical-modelling-linear-classification"
+    data_path = os.path.join(base_path, "data")
+    model_save_path = os.path.join(base_path, "models", f"part_1_logistic_regression_model_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.joblib")
 
-lambda_values = np.concatenate([
-    np.logspace(-5, -3, 5),
-    np.linspace(0.001, 0.1, 10), 
-    np.linspace(0.1, 1, 5),
-    np.linspace(1, 10, 5),
-    np.linspace(10, 1000, 5)
-])
-lambda_values = np.unique(lambda_values.round(8))
+    train_path = os.path.join(data_path, "train")
+    test_path = os.path.join(data_path, "test")
+    
+    print("Loading training data...")
+    X_train, y_train = load_data(train_path)
+    print("Loading test data...")
+    X_test, y_test = load_data(test_path)
 
-print("Training models...")
-models = train_models(X_train, y_train, lambda_values)
+    lambda_values = np.concatenate([
+        #np.logspace(-5, -3, 5),
+        #np.linspace(0.001, 0.1, 10), 
+        #np.linspace(0.1, 1, 5),
+        np.linspace(1, 10, 5),
+        #np.linspace(10, 1000, 5)
+    ])
+    lambda_values = np.unique(lambda_values.round(8))
 
-print("Evaluating models...")
-results = evaluate_models(models, X_test, y_test)
+    print(f"Running nested cross-validation with {len(lambda_values)} lambda values...")
+    best_lambda, best_model, cv_results = nested_cross_validation(X_train, y_train, lambda_values, n_inner=2, n_outer=10)
 
-best_lambda = max(results, key=results.get)
-best_model = models[best_lambda]
-best_accuracy = results[best_lambda]
+    # Summarize cross-validation results
+    cv_df = pd.DataFrame(cv_results)
+    print("\nCross-validation results:")
+    print(f"Mean accuracy: {cv_df['accuracy'].mean():.4f} ± {cv_df['accuracy'].std():.4f}")
+    print(f"Mean AUC: {cv_df['auc'].mean():.4f} ± {cv_df['auc'].std():.4f}")
+    print(f"Selected lambda values across folds: {cv_df['lambda'].tolist()}")
+    print(f"Best lambda (most frequently selected): {best_lambda}")
 
-print(f"Best regularization strength (lambda): {best_lambda}")
-print(f"Best model accuracy: {best_accuracy:.4f}")
+    # Evaluate final model on test set
+    test_metrics = evaluate_model(best_model, X_test, y_test)
+    print("\nFinal model performance on test set:")
+    print(f"Accuracy: {test_metrics['accuracy']:.4f}")
+    print(f"AUC: {test_metrics['auc']:.4f}")
 
-print("\nAccuracy for different regularization strengths:")
-for lambda_val, accuracy in sorted(results.items()):
-    print(f"lambda = {lambda_val}: {accuracy:.4f}")
+    print(f"\nSaving the best model trained on all data with lambda={best_lambda}...")
+    save_model(best_model, model_save_path)
 
-print("Visualizing weights of best model...")
-visualize_weights(best_model)
+    # Visualize model weights
+    print("Visualizing weights of best model...")
+    visualize_weights(best_model)
+
+    print("Visualizing lambda selection frequency...")
+    visualize_lambda_selection(cv_df)
+    
+    print("Visualizing generalization error vs selected lambda...")
+    visualize_performance_by_lambda(cv_df, metric='auc')
+
+    # Return results for comparison
+    return {
+        'best_lambda': best_lambda,
+        'cv_accuracy_mean': cv_df['accuracy'].mean(),
+        'cv_accuracy_std': cv_df['accuracy'].std(),
+        'cv_auc_mean': cv_df['auc'].mean(),
+        'cv_auc_std': cv_df['auc'].std(),
+        'test_accuracy': test_metrics['accuracy'],
+        'test_auc': test_metrics['auc'],
+        'y_test': y_test,
+        'y_test_pred': test_metrics['y_pred'],
+        'y_test_prob': test_metrics['y_prob'],
+        'model': best_model
+    }
+
+run_part1()
