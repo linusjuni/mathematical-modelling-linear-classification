@@ -6,12 +6,24 @@ def visualize_weights(model, image_shape=(224, 224)):
     # Extract model weights (excluding bias)
     weights = model.coef_[0]
     
+    # Reshape weights to image dimensions
     weight_image = weights.reshape(image_shape)
+    abs_weight_image = np.abs(weight_image)
     
-    plt.figure(figsize=(10, 10))
-    plt.imshow(weight_image, cmap='seismic')
-    plt.colorbar()
-    plt.title('Model Weights (Blue = Negative, Red = Positive)')
+    # Create a figure with two subplots
+    fig, axes = plt.subplots(1, 2, figsize=(16, 8))
+    
+    # Plot original weights
+    im0 = axes[0].imshow(weight_image, cmap='seismic')
+    axes[0].set_title('Original Model Weights\n(Blue = Negative, Red = Positive)')
+    plt.colorbar(im0, ax=axes[0])
+    
+    # Plot absolute weights
+    im1 = axes[1].imshow(abs_weight_image, cmap='viridis')
+    axes[1].set_title('Absolute Model Weights')
+    plt.colorbar(im1, ax=axes[1])
+    
+    plt.tight_layout()
     plt.show()
 
 def visualize_lambda_selection(cv_df):
