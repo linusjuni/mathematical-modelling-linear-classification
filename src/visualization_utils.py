@@ -3,14 +3,11 @@ import numpy as np
 import pandas as pd
 
 def visualize_weights(model, image_shape=(224, 224)):
-    # Extract model weights (excluding bias)
     weights = model.coef_[0]
     
-    # Reshape weights to image dimensions
     weight_image = weights.reshape(image_shape)
     abs_weight_image = np.abs(weight_image)
     
-    # Create a figure with two subplots
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
     
     # Plot original weights
@@ -44,15 +41,10 @@ def visualize_lambda_selection(cv_df):
     plt.show()
 
 def visualize_performance_by_lambda(cv_df, metric):
-    """
-    Visualizes the estimated generalization error (outer fold performance)
-    for the lambdas selected during nested cross-validation.
-    """
     if metric not in cv_df.columns:
         print(f"Warning: Metric '{metric}' not found in cv_results. Available metrics: {cv_df.columns.tolist()}")
         return
 
-    # Group by selected lambda and calculate mean/std of the chosen metric
     performance_by_lambda = cv_df.groupby('lambda')[metric].agg(['mean', 'std']).reset_index()
     performance_by_lambda = performance_by_lambda.sort_values('lambda') # Ensure sorted for plotting
 
@@ -61,13 +53,11 @@ def visualize_performance_by_lambda(cv_df, metric):
                  yerr=performance_by_lambda['std'], fmt='-o', capsize=5,
                  label=f'Mean Outer Fold {metric.upper()} ± Std Dev')
 
-    plt.xscale('log') # Lambdas often span orders of magnitude
+    plt.xscale('log')
     plt.xlabel('Selected Lambda (log scale)')
     plt.ylabel(f'Outer Fold {metric.upper()}')
     plt.title(f'Generalization Performance vs. Selected Lambda ({metric.upper()})')
     plt.legend()
     plt.grid(True, which="both", ls="--", alpha=0.5)
     plt.tight_layout()
-    # Consider saving the plot instead of just showing it
-    # plt.savefig(os.path.join(base_path, "plots", "generalization_error_vs_lambda.png"))
     plt.show()  
