@@ -5,7 +5,7 @@ import os
 
 from data_utils import load_data_with_histograms_of_orientation
 from model_utils import nested_cross_validation, train_model, evaluate_model, save_model, load_model
-from visualization_utils import visualize_weights, visualize_lambda_selection, visualize_performance_by_lambda
+from visualization_utils import visualize_weight_from_feature_vector, visualize_lambda_selection, visualize_performance_by_lambda
 
 def run_part3():
 
@@ -56,8 +56,12 @@ def run_part3():
     # DAMN MAN, CAN'T VISUALISE YET
 
     #print("Visualizing weights of best model...")
-    #visualize_weights(best_model)
-
+    visualize_weight_from_feature_vector(
+        best_model, 
+        image_shape=(224,224), 
+        pixels_per_cell=(32,32), 
+        orientations=9
+        )
     #print("Visualizing lambda selection frequency...")
     #visualize_lambda_selection(cv_df)
     

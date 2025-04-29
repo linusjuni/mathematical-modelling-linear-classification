@@ -61,3 +61,44 @@ def visualize_performance_by_lambda(cv_df, metric):
     plt.grid(True, which="both", ls="--", alpha=0.5)
     plt.tight_layout()
     plt.show()  
+
+def visualize_weight_from_feature_vector(model, image_shape=(224, 224), pixels_per_cell=(32, 32), orientations=9):
+
+    weights = model.coef_[0]
+
+    n_cells_y = image_shape[0] // pixels_per_cell[0]
+    n_cells_x = image_shape[1] // pixels_per_cell[1]
+    
+    expected_len = n_cells_y * n_cells_x * orientations
+    if len(weights) != expected_len:
+        print(f"Warning: Weight vector length ({len(weights)}) does not match "
+              f"expected HOG feature length ({expected_len} = "
+              f"{n_cells_y}x{n_cells_x} cells * {orientations} orientations). Cannot visualize weights accurately.")
+        return
+
+    try:
+        weights_reshaped = weights.reshape((n_cells_y, n_cells_x, orientations))
+    except ValueError as e:
+        print(f"Error reshaping weights vector of length {len(weights)} "
+              f"into ({n_cells_y}, {n_cells_x}, {orientations}). Cannot visualize. Error: {e}")
+        return
+
+    cell_importance = np.sum(np.abs(weights_reshaped), axis=2) # Shape: (n_cells_y, n_cells_x)
+
+    upscaled_heatmap = np.kron(cell_importance, np.ones(pixels_per_cell))
+
+    plt.figure(figsize=(10, 10))
+    im = plt.imshow(upscaled_heatmap, cmap='viridis', extent=(0, image_shape[1], image_shape[0], 0))
+    plt.colorbar(im, label='Aggregated Absolute Weight per Cell')
+    plt.title(f'HOG Feature Importance Heatmap ({pixels_per_cell[0]}x{pixels_per_cell[1]} cells)')
+    plt.xlabel('Image Width (pixels)')
+    plt.ylabel('Image Height (pixels)')
+    
+    ax = plt.gca()
+    ax.set_xticks(np.arange(0, image_shape[1] + 1, pixels_per_cell[1]), minor=True)
+    ax.set_yticks(np.arange(0, image_shape[0] + 1, pixels_per_cell[0]), minor=True)
+    ax.grid(which='minor', color='red', linestyle='-', linewidth=1, alpha=0.5) 
+    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False,
+                   labelbottom=False, labelleft=False, labeltop=False, labelright=False) 
+
+    plt.show()
