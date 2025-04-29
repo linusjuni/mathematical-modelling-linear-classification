@@ -3,6 +3,8 @@ import os
 from PIL import Image
 import glob
 from scipy import ndimage
+from skimage.feature import hog
+
 
 # Linus: /Users/linus.juni/Documents/Personal/mathematical-modelling-linear-classification/data
 # Ask: 
@@ -53,3 +55,31 @@ def load_data_with_sobel_kernel(folder_path):
     print(f"Processed {len(X_gradient)} images with Sobel gradient features")
     
     return np.array(X_gradient), y
+
+def load_data_with_histograms_of_orientation(folder_path, pixels_per_cell=(32, 32), orientations=9, cells_per_block=(1, 1)):
+    X_raw, y = load_data(folder_path)
+
+    X_features = []
+
+    for img_flat in X_raw:
+        img_2d = img_flat.reshape(224, 224)
+
+        hog_features = hog(
+            img_2d,
+            orientations=orientations,
+            pixels_per_cell=pixels_per_cell,
+            cells_per_block=cells_per_block,
+            block_norm='L2-Hys',
+            visualize=False,
+            feature_vector=True
+        )
+
+        X_features.append(hog_features)    
+
+    print(f"Processed {len(X_features)} images with HOG features")
+    print(f"First 3 vectors in X_features size: {[len(X_features[i]) for i in range(min(3, len(X_features)))]}")
+    
+    return np.array(X_features), y
+
+
+
