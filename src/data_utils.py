@@ -2,12 +2,13 @@ import numpy as np
 import os
 from PIL import Image
 import glob
+from scipy import ndimage
+
+# Linus: /Users/linus.juni/Documents/Personal/mathematical-modelling-linear-classification/data
+# Ask: 
+# Simon:
 
 def load_data(folder_path):
-    # Linus: /Users/linus.juni/Documents/Personal/mathematical-modelling-linear-classification/data
-    # Ask: 
-    # Simon:
-    
     X = []
     y = []
     
@@ -33,3 +34,22 @@ def load_data(folder_path):
     print(f"Processed {len(X)} images: {sum(y)} pneumonia, {len(X) - sum(y)} healthy")
     
     return np.array(X), np.array(y)
+
+def load_data_with_sobel_kernel(folder_path):
+    X_raw, y = load_data(folder_path)
+
+    X_gradient = []
+
+    for img_flat in X_raw:
+        img_2d = img_flat.reshape(224, 224)
+
+        gradient_x = ndimage.sobel(img_2d, axis=1)
+        gradient_y = ndimage.sobel(img_2d, axis=0)
+
+        gradient_magnitude = np.sqrt(gradient_x**2 + gradient_y**2)
+
+        X_gradient.append(gradient_magnitude.flatten())
+
+    print(f"Processed {len(X_gradient)} images with Sobel gradient features")
+    
+    return np.array(X_gradient), y
