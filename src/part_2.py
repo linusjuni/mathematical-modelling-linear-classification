@@ -2,19 +2,21 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
+from sklearn.decomposition import PCA
 
 from data_utils import load_data_with_sobel_kernel
 from model_utils import nested_cross_validation, train_model, evaluate_model, save_model, load_model
 from visualization_utils import visualize_weights, visualize_lambda_selection, visualize_performance_by_lambda
 
-def run_part2():
+def run_part2(n_components_pca=None, visualize=False):
 
     N_INNER = 2
     N_OUTER = 2
 
     base_path = "/Users/linusjuni/Documents/General Engineering/6. Semester/Mathematical Modelling/Assignments/mathematical-modelling-linear-classification/"
     data_path = os.path.join(base_path, "data")
-    model_save_path = os.path.join(base_path, "models", f"part_2_logistic_regression_model_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.joblib")
+    model_suffix = "_pca" if n_components_pca is not None else ""
+    model_save_path = os.path.join(base_path, "models", f"part_2_logistic_regression_model{model_suffix}_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.joblib")
 
     train_path = os.path.join(data_path, "train")
     test_path = os.path.join(data_path, "test")
@@ -23,6 +25,14 @@ def run_part2():
     X_train, y_train = load_data_with_sobel_kernel(train_path)
     print("Loading test data...")
     X_test, y_test = load_data_with_sobel_kernel(test_path)
+
+    if n_components_pca is not None:
+        print(f"Reducing dimensionality using PCA to {n_components_pca} components...")
+        pca = PCA(n_components=n_components_pca)
+        X_train = pca.fit_transform(X_train)
+        X_test = pca.transform(X_test)
+    else:
+        print("No PCA applied, using original data dimensions.")
 
     lambda_values = np.concatenate([
         np.logspace(-5, -3, 5),
@@ -53,14 +63,15 @@ def run_part2():
     print(f"\nSaving the best model trained on all data with lambda={best_lambda}...")
     save_model(best_model, model_save_path)
 
-    print("Visualizing weights of best model...")
-    visualize_weights(best_model)
+    if visualize:
+        print("Visualizing weights of best model...")
+        visualize_weights(best_model)
 
-    print("Visualizing lambda selection frequency...")
-    visualize_lambda_selection(cv_df)
-    
-    print("Visualizing generalization error vs selected lambda...")
-    visualize_performance_by_lambda(cv_df, metric='auc')
+        print("Visualizing lambda selection frequency...")
+        visualize_lambda_selection(cv_df)
+        
+        print("Visualizing generalization error vs selected lambda...")
+        visualize_performance_by_lambda(cv_df, metric='auc')
 
     return {
         'best_lambda': best_lambda,
@@ -80,4 +91,4 @@ def run_part2():
     }
 
 if __name__ == "__main__":
-    run_part2()
+    run_part2(n_components_pca=0.95)
