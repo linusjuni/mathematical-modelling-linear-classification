@@ -9,8 +9,8 @@ from visualization_utils import visualize_weights, visualize_lambda_selection, v
 
 def run_part2():
 
-    N_INNER = 5
-    N_OUTER = 5
+    N_INNER = 2
+    N_OUTER = 2
 
     base_path = "/Users/linusjuni/Documents/General Engineering/6. Semester/Mathematical Modelling/Assignments/mathematical-modelling-linear-classification/"
     data_path = os.path.join(base_path, "data")
@@ -26,10 +26,10 @@ def run_part2():
 
     lambda_values = np.concatenate([
         np.logspace(-5, -3, 5),
-        np.linspace(0.001, 0.1, 10), 
-        np.linspace(0.1, 1, 5),
-        np.linspace(1, 10, 5),
-        np.linspace(10, 1000, 5)
+        #np.linspace(0.001, 0.1, 10), 
+        #np.linspace(0.1, 1, 5),
+        #np.linspace(1, 10, 5),
+        #np.linspace(10, 1000, 5)
     ])
     lambda_values = np.unique(lambda_values.round(8))
 
@@ -64,6 +64,9 @@ def run_part2():
 
     return {
         'best_lambda': best_lambda,
+        'cv_df': cv_df,
+        'cv_accuracy_list':  cv_df['accuracy'].tolist(),
+        'cv_auc_list': cv_df['auc'].tolist(),
         'cv_accuracy_mean': cv_df['accuracy'].mean(),
         'cv_accuracy_std': cv_df['accuracy'].std(),
         'cv_auc_mean': cv_df['auc'].mean(),
@@ -76,4 +79,5 @@ def run_part2():
         'model': best_model
     }
 
-run_part2()
+if __name__ == "__main__":
+    run_part2()

@@ -25,11 +25,11 @@ def run_part1():
     X_test, y_test = load_data(test_path)
 
     lambda_values = np.concatenate([
-        #np.logspace(-5, -3, 5),
+        np.logspace(-5, -3, 5),
         #np.linspace(0.001, 0.1, 10), 
         #np.linspace(0.1, 1, 5),
         #np.linspace(1, 10, 5),
-        np.linspace(10, 1000, 5)
+        #np.linspace(10, 1000, 5)
     ])
     lambda_values = np.unique(lambda_values.round(8))
 
@@ -65,6 +65,9 @@ def run_part1():
     # Return results for comparison
     return {
         'best_lambda': best_lambda,
+        'cv_df': cv_df,
+        'cv_accuracy_list':  cv_df['accuracy'].tolist(),
+        'cv_auc_list': cv_df['auc'].tolist(),
         'cv_accuracy_mean': cv_df['accuracy'].mean(),
         'cv_accuracy_std': cv_df['accuracy'].std(),
         'cv_auc_mean': cv_df['auc'].mean(),
@@ -77,4 +80,5 @@ def run_part1():
         'model': best_model
     }
 
-run_part1()
+if __name__ == "__main__":
+    run_part1()

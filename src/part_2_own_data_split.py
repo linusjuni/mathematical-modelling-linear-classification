@@ -9,8 +9,8 @@ from visualization_utils import visualize_weights, visualize_lambda_selection, v
 
 def run_part2_own_data_split():
 
-    N_INNER = 5
-    N_OUTER = 5
+    N_INNER = 2
+    N_OUTER = 2
 
     base_path = "/Users/linusjuni/Documents/General Engineering/6. Semester/Mathematical Modelling/Assignments/mathematical-modelling-linear-classification/"
     data_path = os.path.join(base_path, "data")
@@ -61,6 +61,9 @@ def run_part2_own_data_split():
 
     return {
         'best_lambda': best_lambda,
+        'cv_df': cv_df,
+        'cv_accuracy_list':  cv_df['accuracy'].tolist(),
+        'cv_auc_list': cv_df['auc'].tolist(),
         'cv_accuracy_mean': cv_df['accuracy'].mean(),
         'cv_accuracy_std': cv_df['accuracy'].std(),
         'cv_auc_mean': cv_df['auc'].mean(),
@@ -68,4 +71,5 @@ def run_part2_own_data_split():
         'model': best_model
     }
 
-run_part2_own_data_split()
+if __name__ == "__main__":
+    run_part2_own_data_split()

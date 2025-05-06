@@ -61,6 +61,9 @@ def run_part1_own_data_split():
 
     return {
         'best_lambda': best_lambda,
+        'cv_df': cv_df,
+        'cv_accuracy_list':  cv_df['accuracy'].tolist(),
+        'cv_auc_list': cv_df['auc'].tolist(),
         'cv_accuracy_mean': cv_df['accuracy'].mean(),
         'cv_accuracy_std': cv_df['accuracy'].std(),
         'cv_auc_mean': cv_df['auc'].mean(),
@@ -68,4 +71,5 @@ def run_part1_own_data_split():
         'model': best_model
     }
 
-run_part1_own_data_split()
+if __name__ == "__main__":
+    run_part1_own_data_split()
