@@ -29,10 +29,10 @@ def run_part3_own_data_split():
 
     lambda_values = np.concatenate([
         np.logspace(-5, -3, 5),
-        np.linspace(0.001, 0.1, 10), 
-        np.linspace(0.1, 1, 5),
-        np.linspace(1, 10, 5),
-        np.linspace(10, 1000, 5)
+        #np.linspace(0.001, 0.1, 10), 
+        #np.linspace(0.1, 1, 5),
+        #np.linspace(1, 10, 5),
+        #np.linspace(10, 1000, 5)
     ])
     lambda_values = np.unique(lambda_values.round(8))
 
