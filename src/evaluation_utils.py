@@ -3,7 +3,7 @@ from scipy.stats import t
 
 def correlated_t_test(r_vals, K_fold=10, alpha=0.05):
 
-    # r_vals is differences in score per outer fold
+    # r_vals is differences in performance metric per outer fold
     r = np.asarray(r_vals)
     J = len(r)
     nu = J - 1

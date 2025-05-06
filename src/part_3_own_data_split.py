@@ -9,8 +9,8 @@ from visualization_utils import visualize_weights, visualize_lambda_selection, v
 
 def run_part3_own_data_split():
 
-    N_INNER = 10
-    N_OUTER = 10
+    N_INNER = 2
+    N_OUTER = 2
 
     base_path = "/Users/linusjuni/Documents/General Engineering/6. Semester/Mathematical Modelling/Assignments/mathematical-modelling-linear-classification/"
     data_path = os.path.join(base_path, "data")
@@ -71,4 +71,5 @@ def run_part3_own_data_split():
         'model': best_model
     }
 
-run_part3_own_data_split()
+if __name__ == "__main__":
+    run_part3_own_data_split()
