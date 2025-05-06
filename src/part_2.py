@@ -64,6 +64,9 @@ def run_part2():
 
     return {
         'best_lambda': best_lambda,
+        'cv_df': cv_df,
+        'cv_accuracy_list':  cv_df['accuracy'].tolist(),
+        'cv_auc_list': cv_df['auc'].tolist(),
         'cv_accuracy_mean': cv_df['accuracy'].mean(),
         'cv_accuracy_std': cv_df['accuracy'].std(),
         'cv_auc_mean': cv_df['auc'].mean(),
