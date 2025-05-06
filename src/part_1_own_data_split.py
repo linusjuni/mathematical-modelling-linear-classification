@@ -28,11 +28,11 @@ def run_part1_own_data_split():
     y_train = np.concatenate((y_train, y_test), axis=0)
 
     lambda_values = np.concatenate([
-        #np.logspace(-5, -3, 5),
+        np.logspace(-5, -3, 5),
         #np.linspace(0.001, 0.1, 10), 
         #np.linspace(0.1, 1, 5),
         #np.linspace(1, 10, 5),
-        np.linspace(10, 1000, 5)
+        #np.linspace(10, 1000, 5)
     ])
     lambda_values = np.unique(lambda_values.round(8))
 
