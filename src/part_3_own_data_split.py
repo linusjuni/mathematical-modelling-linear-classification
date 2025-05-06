@@ -7,14 +7,14 @@ from data_utils import load_data_with_histograms_of_orientation
 from model_utils import nested_cross_validation, train_model, evaluate_model, save_model, load_model
 from visualization_utils import visualize_weights, visualize_lambda_selection, visualize_performance_by_lambda
 
-def run_part3():
+def run_part3_own_data_split():
 
     N_INNER = 10
     N_OUTER = 10
 
     base_path = "/Users/linusjuni/Documents/General Engineering/6. Semester/Mathematical Modelling/Assignments/mathematical-modelling-linear-classification/"
     data_path = os.path.join(base_path, "data")
-    model_save_path = os.path.join(base_path, "models", f"part_3_logistic_regression_model_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.joblib")
+    model_save_path = os.path.join(base_path, "models", f"part_3_own_data_split_logistic_regression_model_{pd.Timestamp.now().strftime('%Y%m%d_%H%M%S')}.joblib")
 
     train_path = os.path.join(data_path, "train")
     test_path = os.path.join(data_path, "test")
@@ -23,6 +23,9 @@ def run_part3():
     X_train, y_train = load_data_with_histograms_of_orientation(train_path)
     print("Loading test data...")
     X_test, y_test = load_data_with_histograms_of_orientation(test_path)
+    print("Combing both datasets")
+    X_train = np.concatenate((X_train, X_test), axis=0)
+    y_train = np.concatenate((y_train, y_test), axis=0)
 
     lambda_values = np.concatenate([
         np.logspace(-5, -3, 5),
@@ -44,39 +47,25 @@ def run_part3():
     print(f"Selected lambda values across folds: {cv_df['lambda'].tolist()}")
     print(f"Best lambda (most frequently selected): {best_lambda}")
 
-    # Evaluate final model on test set
-    test_metrics = evaluate_model(best_model, X_test, y_test)
-    print("\nFinal model performance on test set:")
-    print(f"Accuracy: {test_metrics['accuracy']:.4f}")
-    print(f"AUC: {test_metrics['auc']:.4f}")
-
     print(f"\nSaving the best model trained on all data with lambda={best_lambda}...")
     save_model(best_model, model_save_path)
 
-    # DAMN MAN, CAN'T VISUALISE YET
+    """print("Visualizing weights of best model...")
+    visualize_weights(best_model)
 
-    #print("Visualizing weights of best model...")
-    #visualize_weights(best_model)
-
-    #print("Visualizing lambda selection frequency...")
-    #visualize_lambda_selection(cv_df)
+    print("Visualizing lambda selection frequency...")
+    visualize_lambda_selection(cv_df)
     
-    #print("Visualizing generalization error vs selected lambda...")
-    #visualize_performance_by_lambda(cv_df, metric='auc')
-
-    # Return results for comparison
+    print("Visualizing generalization error vs selected lambda...")
+    visualize_performance_by_lambda(cv_df, metric='auc')
+"""
     return {
         'best_lambda': best_lambda,
         'cv_accuracy_mean': cv_df['accuracy'].mean(),
         'cv_accuracy_std': cv_df['accuracy'].std(),
         'cv_auc_mean': cv_df['auc'].mean(),
         'cv_auc_std': cv_df['auc'].std(),
-        'test_accuracy': test_metrics['accuracy'],
-        'test_auc': test_metrics['auc'],
-        'y_test': y_test,
-        'y_test_pred': test_metrics['y_pred'],
-        'y_test_prob': test_metrics['y_prob'],
         'model': best_model
     }
 
-run_part3()
+run_part3_own_data_split()
