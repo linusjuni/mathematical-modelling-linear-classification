@@ -1,16 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from sklearn.decomposition import PCA
+
 
 def visualize_weights(model, image_shape=(224, 224)):
-    # Extract model weights (excluding bias)
     weights = model.coef_[0]
     
-    # Reshape weights to image dimensions
     weight_image = weights.reshape(image_shape)
     abs_weight_image = np.abs(weight_image)
     
-    # Create a figure with two subplots
     fig, axes = plt.subplots(1, 2, figsize=(16, 8))
     
     # Plot original weights
@@ -44,15 +43,10 @@ def visualize_lambda_selection(cv_df):
     plt.show()
 
 def visualize_performance_by_lambda(cv_df, metric):
-    """
-    Visualizes the estimated generalization error (outer fold performance)
-    for the lambdas selected during nested cross-validation.
-    """
     if metric not in cv_df.columns:
         print(f"Warning: Metric '{metric}' not found in cv_results. Available metrics: {cv_df.columns.tolist()}")
         return
 
-    # Group by selected lambda and calculate mean/std of the chosen metric
     performance_by_lambda = cv_df.groupby('lambda')[metric].agg(['mean', 'std']).reset_index()
     performance_by_lambda = performance_by_lambda.sort_values('lambda') # Ensure sorted for plotting
 
@@ -68,6 +62,118 @@ def visualize_performance_by_lambda(cv_df, metric):
     plt.legend()
     plt.grid(True, which="both", ls="--", alpha=0.5)
     plt.tight_layout()
-    # Consider saving the plot instead of just showing it
-    # plt.savefig(os.path.join(base_path, "plots", "generalization_error_vs_lambda.png"))
-    plt.show()  
+    plt.show()
+
+def plot_pca_2d(X, y, title='PCA of X-ray Data (2 Components)'):
+    if X.shape[0] == 0:
+        print("No data provided to plot_pca_2d.")
+        return
+
+    pca = PCA(n_components=2)
+    X_pca = pca.fit_transform(X)
+
+    X_pca_positive = X_pca[y == 1]
+    X_pca_negative = X_pca[y == 0]
+
+    plt.figure(figsize=(10, 7))
+    plt.scatter(X_pca_negative[:, 0], X_pca_negative[:, 1], alpha=0.7, label='Healthy (0)', c='green')
+    plt.scatter(X_pca_positive[:, 0], X_pca_positive[:, 1], alpha=0.7, label='Pneumonia (1)', c='red')
+
+    plt.title(title)
+    plt.xlabel('Principal Component 1 (PC1)')
+    plt.ylabel('Principal Component 2 (PC2)')
+    plt.legend()
+    plt.grid(True)
+    plt.show()
+
+    print(f"Explained variance ratio by PC1 and PC2: {pca.explained_variance_ratio_}")
+    print(f"Total explained variance by PC1 and PC2: {np.sum(pca.explained_variance_ratio_)}")
+
+def plot_pca_3d(X, y, title='PCA of X-ray Data (3 Components)'):
+    if X.shape[0] == 0:
+        print("No data provided to plot_pca_3d.")
+        return
+
+    pca = PCA(n_components=3)
+    X_pca = pca.fit_transform(X)
+
+    X_pca_positive = X_pca[y == 1]
+    X_pca_negative = X_pca[y == 0]
+
+    fig = plt.figure(figsize=(10, 7))
+    ax = fig.add_subplot(111, projection='3d')
+
+    ax.scatter(X_pca_negative[:, 0], X_pca_negative[:, 1], X_pca_negative[:, 2], alpha=0.7, label='Healthy (0)', c='green')
+    ax.scatter(X_pca_positive[:, 0], X_pca_positive[:, 1], X_pca_positive[:, 2], alpha=0.7, label='Pneumonia (1)', c='red')
+
+    ax.set_title(title)
+    ax.set_xlabel('Principal Component 1 (PC1)')
+    ax.set_ylabel('Principal Component 2 (PC2)')
+    ax.set_zlabel('Principal Component 3 (PC3)')
+    ax.legend()
+    plt.grid(True)
+    plt.show()
+
+    print(f"Explained variance ratio by PC1, PC2, and PC3: {pca.explained_variance_ratio_}")
+    print(f"Total explained variance by PC1, PC2, and PC3: {np.sum(pca.explained_variance_ratio_)}")
+
+def plot_pca_scree(X, title='PCA Scree Plot'):
+    if X.shape[0] == 0:
+        print("No data provided to plot_pca_scree.")
+        return
+
+    num_total_features = X.shape[1]
+    if num_total_features == 0:
+        print("Input data X has no features to perform PCA on.")
+        return
+
+    # Determine the number of components to compute and display (max 8)
+    n_components_to_analyze = min(8, num_total_features)
+
+    # Perform PCA for the specified number of components
+    pca = PCA(n_components=n_components_to_analyze)
+    pca.fit(X)
+
+    explained_variance_ratio = pca.explained_variance_ratio_
+    cumulative_explained_variance = np.cumsum(explained_variance_ratio)
+    
+    # n_components here refers to the number of components we are displaying
+    n_components_displayed = len(explained_variance_ratio) 
+
+    plt.figure(figsize=(10, 6))
+
+    # Plot explained variance for each component
+    plt.bar(range(1, n_components_displayed + 1), explained_variance_ratio, alpha=0.7, align='center',
+            label='Individual explained variance')
+
+    # Plot cumulative explained variance
+    plt.step(range(1, n_components_displayed + 1), cumulative_explained_variance, where='mid',
+            label='Cumulative explained variance', color='red')
+
+    plt.ylabel('Explained Variance Ratio')
+    plt.xlabel('Principal Component Number')
+    
+    plot_title = title
+    if n_components_displayed < num_total_features:
+        plot_title += f" (First {n_components_displayed} Components)"
+    plt.title(plot_title)
+    
+    plt.xticks(range(1, n_components_displayed + 1))
+    plt.legend(loc='best')
+    plt.grid(True, which="both", ls="--", alpha=0.5)
+    plt.tight_layout()
+    plt.show()
+
+    # Print some information
+    if n_components_displayed < num_total_features:
+        print(f"Showing information for the first {n_components_displayed} principal components (out of {num_total_features} total possible components):")
+    else:
+        print(f"Showing information for all {n_components_displayed} principal components:")
+        
+    for i, ratio in enumerate(explained_variance_ratio):
+        print(f"PC{i+1}: Explained Variance = {ratio:.4f}, Cumulative = {cumulative_explained_variance[i]:.4f}")
+        # The cumulative_explained_variance[i] is the actual fraction of total variance explained by the first i+1 components.
+        if cumulative_explained_variance[i] >= 0.95 and (i == 0 or cumulative_explained_variance[i-1] < 0.95) :
+            print(f"--- {i+1} components explain >= 95% of total variance ---")
+        if cumulative_explained_variance[i] >= 0.99 and (i == 0 or cumulative_explained_variance[i-1] < 0.99) :
+            print(f"--- {i+1} components explain >= 99% of total variance ---")
