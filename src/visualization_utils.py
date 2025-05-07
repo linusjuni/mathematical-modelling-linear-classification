@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-
+import seaborn as sns
 
 def visualize_weights(model, image_shape=(224, 224)):
     weights = model.coef_[0]
@@ -177,3 +177,37 @@ def plot_pca_scree(X, title='PCA Scree Plot'):
             print(f"--- {i+1} components explain >= 95% of total variance ---")
         if cumulative_explained_variance[i] >= 0.99 and (i == 0 or cumulative_explained_variance[i-1] < 0.99) :
             print(f"--- {i+1} components explain >= 99% of total variance ---")
+
+def plot_overall_results():
+    sns.set_palette("muted")
+
+    # Raw results extracted from running each model
+    data = {
+        'Part': ['Raw Pixels', 'Raw Pixels', 'Sobel Filter', 'Sobel Filter', 'HOG', 'HOG'],
+        'PCA': ['Without PCA', 'With PCA', 'Without PCA', 'With PCA', 'Without PCA', 'With PCA'],
+        'Accuracy': [0.6442, 0.6362, 0.8349, 0.8462, 0.8301, 0.8189],
+        'AUC': [0.5367, 0.5349, 0.9535, 0.9524, 0.9230, 0.9105]
+    }
+    df = pd.DataFrame(data)
+
+    # Plot Accuracy
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x='Part', y='Accuracy', hue='PCA')
+    plt.title('Accuracy by Part and PCA')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Data Input')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    # Plot AUC
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x='Part', y='AUC', hue='PCA')
+    plt.title('AUC by Part and PCA')
+    plt.ylabel('AUC')
+    plt.xlabel('Data Input')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+plot_overall_results()
