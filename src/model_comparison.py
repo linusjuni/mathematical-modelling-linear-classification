@@ -7,13 +7,13 @@ from part_3 import run_part3
 
 def compare_models():
     print("Running Part 1 model...")
-    part1_results = run_part1()
+    part1_results = run_part1(n_components_pca=0.95)
     
     print("\nRunning Part 2 model (Sobel features)...")
-    part2_results = run_part2()
+    part2_results = run_part2(n_components_pca=0.95)
     
     print("\nRunning Part 3 model (Histogram of Orientation features)...")
-    part3_results = run_part3()
+    part3_results = run_part3(n_components_pca=0.95)
     
     part1_cv_df = part1_results['cv_df']
     part2_cv_df = part2_results['cv_df']
@@ -50,7 +50,7 @@ def compare_models():
                 print(f"Mean difference ({model2_name} - {model1_name}): {test_result['mean_diff']:.4f}")
                 print(f"95% Confidence Interval: [{test_result['ci'][0]:.4f}, {test_result['ci'][1]:.4f}]")
                 print(f"t-statistic: {test_result['t_stat']:.4f}")
-                print(f"p-value: {test_result['p_value']:.4f}")
+                print(f"p-value: {test_result['p_value']:.10f}")
                 
                 if test_result['p_value'] < 0.05:
                     better = model2_name if test_result['mean_diff'] > 0 else model1_name
