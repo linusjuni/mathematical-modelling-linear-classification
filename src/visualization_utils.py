@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.decomposition import PCA
-
+import seaborn as sns
 
 def visualize_weights(model, image_shape=(224, 224)):
     weights = model.coef_[0]
@@ -177,3 +177,160 @@ def plot_pca_scree(X, title='PCA Scree Plot'):
             print(f"--- {i+1} components explain >= 95% of total variance ---")
         if cumulative_explained_variance[i] >= 0.99 and (i == 0 or cumulative_explained_variance[i-1] < 0.99) :
             print(f"--- {i+1} components explain >= 99% of total variance ---")
+
+def plot_overall_results_simple():
+    sns.set_palette("muted")
+
+    # Raw results extracted from running each model
+    data = {
+        'Part': ['Raw Pixels', 'Raw Pixels', 'Sobel Filter', 'Sobel Filter', 'HOG', 'HOG'],
+        'PCA': ['Without PCA', 'With PCA', 'Without PCA', 'With PCA', 'Without PCA', 'With PCA'],
+        'Accuracy': [0.6442, 0.6362, 0.8349, 0.8462, 0.8301, 0.8189],
+        'AUC': [0.5367, 0.5349, 0.9535, 0.9524, 0.9230, 0.9105]
+    }
+    df = pd.DataFrame(data)
+
+    # Plot Accuracy
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x='Part', y='Accuracy', hue='PCA')
+    plt.title('Accuracy by Part and PCA')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Data Input')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    # Plot AUC
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x='Part', y='AUC', hue='PCA')
+    plt.title('AUC by Part and PCA')
+    plt.ylabel('AUC')
+    plt.xlabel('Data Input')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()   
+
+def plot_overall_results_combined():
+    sns.set_palette("muted")
+
+    # Raw results extracted from running each model
+    data = {
+        'Part': ['Raw Pixels', 'Raw Pixels', 'Sobel Filter', 'Sobel Filter', 'HOG', 'HOG'],
+        'PCA': ['Without PCA', 'With PCA', 'Without PCA', 'With PCA', 'Without PCA', 'With PCA'],
+        'Accuracy': [0.6442, 0.6362, 0.8349, 0.8462, 0.8301, 0.8189],
+        'AUC': [0.5367, 0.5349, 0.9535, 0.9524, 0.9230, 0.9105]
+    }
+    df = pd.DataFrame(data)
+
+    # Plot Accuracy
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x='Part', y='Accuracy', hue='PCA')
+    plt.title('Accuracy by Part and PCA')
+    plt.ylabel('Accuracy')
+    plt.xlabel('Data Input')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+    # Plot AUC
+    plt.figure(figsize=(8, 5))
+    sns.barplot(data=df, x='Part', y='AUC', hue='PCA')
+    plt.title('AUC by Part and PCA')
+    plt.ylabel('AUC')
+    plt.xlabel('Data Input')
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
+
+def plot_model_comparison():
+    sns.set_palette("muted")
+    
+    # Data from t-test comparisons
+    comparisons = [
+        "Part 2 (Sobel) vs Part 1 (Raw)",
+        "Part 3 (Histogram) vs Part 1 (Raw)",
+        "Part 3 (Histogram) vs Part 2 (Sobel)"
+    ]
+
+    accuracy_data = {
+        'Comparison': comparisons,
+        'Mean Difference': [0.1525, 0.1600, 0.0075],
+        'CI_Lower': [0.0971, 0.1155, -0.0384],
+        'CI_Upper': [0.2079, 0.2045, 0.0534],
+        'p-value': [0.0001536610, 0.0000194007, 0.7202874671],
+        'Significant': ['Yes', 'Yes', 'No']
+    }
+
+    auc_data = {
+        'Comparison': comparisons,
+        'Mean Difference': [0.5061, 0.4991, -0.0070],
+        'CI_Lower': [0.4171, 0.4096, -0.0188],
+        'CI_Upper': [0.5951, 0.5885, 0.0048],
+        'p-value': [0.0000004260, 0.0000005004, 0.2116678301],
+        'Significant': ['Yes', 'Yes', 'No']
+    }
+
+    # Create DataFrames
+    df_accuracy = pd.DataFrame(accuracy_data)
+    df_auc = pd.DataFrame(auc_data)
+
+    # Calculate error bars (from CI to mean difference)
+    df_accuracy['yerr_low'] = df_accuracy['Mean Difference'] - df_accuracy['CI_Lower']
+    df_accuracy['yerr_high'] = df_accuracy['CI_Upper'] - df_accuracy['Mean Difference']
+
+    df_auc['yerr_low'] = df_auc['Mean Difference'] - df_auc['CI_Lower']
+    df_auc['yerr_high'] = df_auc['CI_Upper'] - df_auc['Mean Difference']
+
+    # Plot Accuracy differences
+    plt.figure(figsize=(12, 6))
+    bars = plt.bar(df_accuracy['Comparison'], df_accuracy['Mean Difference'], 
+                    yerr=[df_accuracy['yerr_low'], df_accuracy['yerr_high']], 
+                    capsize=5, alpha=0.7)
+
+    # Color bars by significance
+    for i, bar in enumerate(bars):
+        if df_accuracy['Significant'][i] == 'Yes':
+            bar.set_color('green')
+        else:
+            bar.set_color('gray')
+
+    plt.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+    plt.title('Accuracy Differences Between Models with 95% Confidence Intervals')
+    plt.ylabel('Mean Difference in Accuracy')
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+    # Annotate with p-values
+    for i, value in enumerate(df_accuracy['Mean Difference']):
+        plt.text(i, value + 0.02, f'p={df_accuracy["p-value"][i]:.7f}', 
+                    ha='center', va='bottom', fontsize=9)
+
+    plt.tight_layout()
+    plt.show()
+
+    # Plot AUC differences
+    plt.figure(figsize=(12, 6))
+    bars = plt.bar(df_auc['Comparison'], df_auc['Mean Difference'], 
+                    yerr=[df_auc['yerr_low'], df_auc['yerr_high']], 
+                    capsize=5, alpha=0.7)
+
+    # Color bars by significance
+    for i, bar in enumerate(bars):
+        if df_auc['Significant'][i] == 'Yes':
+            bar.set_color('green')
+        else:
+            bar.set_color('gray')
+
+    plt.axhline(y=0, color='black', linestyle='-', alpha=0.3)
+    plt.title('AUC Differences Between Models with 95% Confidence Intervals')
+    plt.ylabel('Mean Difference in AUC')
+    plt.xticks(rotation=45, ha='right')
+    plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+    # Annotate with p-values
+    for i, value in enumerate(df_auc['Mean Difference']):
+        plt.text(i, value + 0.02, f'p={df_auc["p-value"][i]:.7f}', 
+                    ha='center', va='bottom', fontsize=9)
+
+    plt.tight_layout()
+    plt.show()
