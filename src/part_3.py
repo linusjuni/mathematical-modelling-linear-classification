@@ -6,7 +6,7 @@ from sklearn.decomposition import PCA
 
 from data_utils import load_data_with_histograms_of_orientation
 from model_utils import nested_cross_validation, train_model, evaluate_model, save_model, load_model
-from visualization_utils import visualize_weights, visualize_lambda_selection, visualize_performance_by_lambda
+from visualization_utils import visualize_weights, visualize_lambda_selection, visualize_performance_by_lambda, visualize_unsigned_orientations_max, visualize_signed_orientations_max
 
 def run_part3(n_components_pca=None, visualize=False):
 
@@ -22,9 +22,9 @@ def run_part3(n_components_pca=None, visualize=False):
     test_path = os.path.join(data_path, "test")
     
     print("Loading training data...")
-    X_train, y_train = load_data_with_histograms_of_orientation(train_path)
+    X_train, y_train = load_data_with_histograms_of_orientation(train_path, pixels_per_cell=(32, 32), orientations=72, cells_per_block=(3, 3))
     print("Loading test data...")
-    X_test, y_test = load_data_with_histograms_of_orientation(test_path)
+    X_test, y_test = load_data_with_histograms_of_orientation(test_path, pixels_per_cell=(32, 32), orientations=72, cells_per_block=(3, 3))
 
     if n_components_pca is not None:
         print(f"Reducing dimensionality using PCA to {n_components_pca} components...")
@@ -65,7 +65,21 @@ def run_part3(n_components_pca=None, visualize=False):
 
     if visualize:
         print("Visualizing weights of best model...")
-        visualize_weights(best_model)
+        visualize_unsigned_orientations_max(
+            best_model,
+            image_shape=(224, 224),
+            pixels_per_cell=(32, 32),
+            orientations=72,
+            cells_per_block=(3, 3)
+        )
+
+        visualize_signed_orientations_max(
+            best_model,
+            image_shape=(224, 224),
+            pixels_per_cell=(32, 32),
+            orientations=72,
+            cells_per_block=(3, 3)
+        )
 
         print("Visualizing lambda selection frequency...")
         visualize_lambda_selection(cv_df)
@@ -92,4 +106,4 @@ def run_part3(n_components_pca=None, visualize=False):
     }
 
 if __name__ == "__main__":
-    run_part3(n_components_pca=0.95)
+    run_part3(n_components_pca=None, visualize=True)
