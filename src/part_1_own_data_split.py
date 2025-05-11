@@ -83,4 +83,4 @@ def run_part1_own_data_split(n_components_pca=None, visualize=False):
     }
 
 if __name__ == "__main__":
-    run_part1_own_data_split(n_components_pca=0.95)
+    run_part1_own_data_split(n_components_pca=0.95, visualize=True)

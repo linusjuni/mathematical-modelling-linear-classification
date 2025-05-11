@@ -106,4 +106,4 @@ def run_part3(n_components_pca=None, visualize=False):
     }
 
 if __name__ == "__main__":
-    run_part3(n_components_pca=None, visualize=True)
+    run_part3(n_components_pca=0.95, visualize=True)
