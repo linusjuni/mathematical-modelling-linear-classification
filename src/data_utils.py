@@ -56,7 +56,7 @@ def load_data_with_sobel_kernel(folder_path):
     
     return np.array(X_gradient), y
 
-def load_data_with_histograms_of_orientation(folder_path, pixels_per_cell=(32, 32), orientations=9, cells_per_block=(1, 1)):
+def load_data_with_histograms_of_orientation(folder_path, pixels_per_cell=(32, 32), orientations=72, cells_per_block=(3, 3)):
     X_raw, y = load_data(folder_path)
 
     X_features = []
