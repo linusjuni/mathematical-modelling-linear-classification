@@ -56,4 +56,5 @@ def run_baseline_model():
         'y_pred_baseline': y_pred_baseline
     }
 
-run_baseline_model()
+if __name__ == "__main__":
+    run_baseline_model()
