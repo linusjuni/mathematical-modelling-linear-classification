@@ -127,26 +127,21 @@ def plot_pca_scree(X, title='PCA Scree Plot'):
         print("Input data X has no features to perform PCA on.")
         return
 
-    # Determine the number of components to compute and display (max 8)
     n_components_to_analyze = min(8, num_total_features)
 
-    # Perform PCA for the specified number of components
     pca = PCA(n_components=n_components_to_analyze)
     pca.fit(X)
 
     explained_variance_ratio = pca.explained_variance_ratio_
     cumulative_explained_variance = np.cumsum(explained_variance_ratio)
     
-    # n_components here refers to the number of components we are displaying
     n_components_displayed = len(explained_variance_ratio) 
 
     plt.figure(figsize=(10, 6))
 
-    # Plot explained variance for each component
     plt.bar(range(1, n_components_displayed + 1), explained_variance_ratio, alpha=0.7, align='center',
             label='Individual explained variance')
 
-    # Plot cumulative explained variance
     plt.step(range(1, n_components_displayed + 1), cumulative_explained_variance, where='mid',
             label='Cumulative explained variance', color='red')
 
@@ -164,7 +159,6 @@ def plot_pca_scree(X, title='PCA Scree Plot'):
     plt.tight_layout()
     plt.show()
 
-    # Print some information
     if n_components_displayed < num_total_features:
         print(f"Showing information for the first {n_components_displayed} principal components (out of {num_total_features} total possible components):")
     else:
@@ -172,7 +166,6 @@ def plot_pca_scree(X, title='PCA Scree Plot'):
         
     for i, ratio in enumerate(explained_variance_ratio):
         print(f"PC{i+1}: Explained Variance = {ratio:.4f}, Cumulative = {cumulative_explained_variance[i]:.4f}")
-        # The cumulative_explained_variance[i] is the actual fraction of total variance explained by the first i+1 components.
         if cumulative_explained_variance[i] >= 0.95 and (i == 0 or cumulative_explained_variance[i-1] < 0.95) :
             print(f"--- {i+1} components explain >= 95% of total variance ---")
         if cumulative_explained_variance[i] >= 0.99 and (i == 0 or cumulative_explained_variance[i-1] < 0.99) :
@@ -181,7 +174,6 @@ def plot_pca_scree(X, title='PCA Scree Plot'):
 def plot_overall_results():
     sns.set_palette("muted")
 
-    # Raw results extracted from running each model
     data = {
         'Part': ['Raw Pixels', 'Raw Pixels', 'Sobel Filter', 'Sobel Filter', 'HOG', 'HOG'],
         'PCA': ['Without PCA', 'With PCA', 'Without PCA', 'With PCA', 'Without PCA', 'With PCA'],
@@ -211,14 +203,9 @@ def plot_overall_results():
     plt.show()
 
 def plot_combined_results():
-    """
-    Visualizes both Accuracy and AUC metrics for all model configurations in a single plot.
-    """
-    # Set the visual style
     sns.set_style("whitegrid")
     sns.set_palette("muted")
 
-    # Raw results extracted from running each model
     data = {
         'Part': ['Raw Pixels', 'Raw Pixels', 'Sobel Filter', 'Sobel Filter', 'HOG', 'HOG'],
         'PCA': ['Without PCA', 'With PCA', 'Without PCA', 'With PCA', 'Without PCA', 'With PCA'],
@@ -227,34 +214,27 @@ def plot_combined_results():
     }
     df = pd.DataFrame(data)
     
-    # Create combined labels for x-axis
     df['Model'] = df['Part'] + '\n' + df['PCA']
     
-    # Convert to long format for easier plotting
     df_long = pd.melt(df, id_vars=['Model', 'Part', 'PCA'], 
                        value_vars=['Accuracy', 'AUC'],
                        var_name='Metric', value_name='Score')
 
-    # Create a single plot
     plt.figure(figsize=(12, 7))
     
-    # Plot the grouped bars
     g = sns.barplot(x='Model', y='Score', hue='Metric', data=df_long)
     
-    # Customize the plot
     plt.title('Model Performance Comparison (Accuracy and AUC)', fontsize=14)
     plt.ylabel('Score', fontsize=12)
     plt.xlabel('', fontsize=12)  # Empty label as we have descriptive x-tick labels
     plt.ylim(0, 1.0)  # Both metrics are on 0-1 scale
     
-    # Add value labels on top of bars
     for i, bar in enumerate(g.patches):
         g.text(bar.get_x() + bar.get_width()/2, 
                bar.get_height() + 0.01,
                f'{bar.get_height():.3f}', 
                ha='center', fontsize=9)
     
-    # Enhance legend
     plt.legend(title='Metric', fontsize=10)
     plt.tight_layout()
     plt.show()
@@ -262,7 +242,6 @@ def plot_combined_results():
 def plot_model_comparison():
     sns.set_palette("muted")
     
-    # Data from t-test comparisons
     comparisons = [
         "Part 2 (Sobel) vs Part 1 (Raw)",
         "Part 3 (Histogram) vs Part 1 (Raw)",
@@ -287,24 +266,20 @@ def plot_model_comparison():
         'Significant': ['Yes', 'Yes', 'No']
     }
 
-    # Create DataFrames
     df_accuracy = pd.DataFrame(accuracy_data)
     df_auc = pd.DataFrame(auc_data)
 
-    # Calculate error bars (from CI to mean difference)
     df_accuracy['yerr_low'] = df_accuracy['Mean Difference'] - df_accuracy['CI_Lower']
     df_accuracy['yerr_high'] = df_accuracy['CI_Upper'] - df_accuracy['Mean Difference']
 
     df_auc['yerr_low'] = df_auc['Mean Difference'] - df_auc['CI_Lower']
     df_auc['yerr_high'] = df_auc['CI_Upper'] - df_auc['Mean Difference']
 
-    # Plot Accuracy differences
     plt.figure(figsize=(12, 6))
     bars = plt.bar(df_accuracy['Comparison'], df_accuracy['Mean Difference'], 
                     yerr=[df_accuracy['yerr_low'], df_accuracy['yerr_high']], 
                     capsize=5, alpha=0.7)
 
-    # Color bars by significance
     for i, bar in enumerate(bars):
         if df_accuracy['Significant'][i] == 'Yes':
             bar.set_color('green')
@@ -317,7 +292,6 @@ def plot_model_comparison():
     plt.xticks(rotation=45, ha='right')
     plt.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-    # Annotate with p-values
     for i, value in enumerate(df_accuracy['Mean Difference']):
         plt.text(i, value + 0.02, f'p={df_accuracy["p-value"][i]:.7f}', 
                     ha='center', va='bottom', fontsize=9)
@@ -325,13 +299,11 @@ def plot_model_comparison():
     plt.tight_layout()
     plt.show()
 
-    # Plot AUC differences
     plt.figure(figsize=(12, 6))
     bars = plt.bar(df_auc['Comparison'], df_auc['Mean Difference'], 
                     yerr=[df_auc['yerr_low'], df_auc['yerr_high']], 
                     capsize=5, alpha=0.7)
 
-    # Color bars by significance
     for i, bar in enumerate(bars):
         if df_auc['Significant'][i] == 'Yes':
             bar.set_color('green')
@@ -344,7 +316,6 @@ def plot_model_comparison():
     plt.xticks(rotation=45, ha='right')
     plt.grid(True, axis='y', linestyle='--', alpha=0.7)
 
-    # Annotate with p-values
     for i, value in enumerate(df_auc['Mean Difference']):
         plt.text(i, value + 0.02, f'p={df_auc["p-value"][i]:.7f}', 
                     ha='center', va='bottom', fontsize=9)
@@ -370,8 +341,8 @@ def visualize_unsigned_orientations(model, image_shape=(224, 224), pixels_per_ce
     plt.figure(figsize=(10, 10))
     ax = plt.gca()
 
-    angle_step = np.pi / orientations  # 0–π for unsigned gradients
-    line_half_len = min(pixels_per_cell) * 0.4  # Half-length for symmetric line
+    angle_step = np.pi / orientations
+    line_half_len = min(pixels_per_cell) * 0.4
 
     for idx in range(n_cells):
         y = idx // n_cells_x
@@ -392,9 +363,8 @@ def visualize_unsigned_orientations(model, image_shape=(224, 224), pixels_per_ce
             opacity = np.abs(weight) / max_weight if max_weight > 0 else 0
 
             dx = np.cos(angle) * line_half_len
-            dy = -np.sin(angle) * line_half_len  # Flip Y-axis for image display
+            dy = -np.sin(angle) * line_half_len
 
-            # Draw a symmetric line segment centered at the cell
             ax.plot([center_x - dx, center_x + dx],
                     [center_y - dy, center_y + dy],
                     color=(1, 1, 1, opacity), linewidth=1.5)
@@ -415,12 +385,9 @@ def visualize_unsigned_orientations(model, image_shape=(224, 224), pixels_per_ce
 def visualize_unsigned_orientations_max(model, image_shape=(224, 224), pixels_per_cell=(32, 32), orientations=72, cells_per_block=(3, 3)):
     weights = model.coef_[0]
 
-    # Number of cells in the image grid, determined by pixels_per_cell
     n_cells_y_img = image_shape[0] // pixels_per_cell[0]
     n_cells_x_img = image_shape[1] // pixels_per_cell[1]
     
-    # Number of blocks in y and x dimensions.
-    # This calculation assumes a block stride of 1 cell.
     n_blocks_y = (n_cells_y_img - cells_per_block[0]) + 1
     n_blocks_x = (n_cells_x_img - cells_per_block[1]) + 1
 
@@ -430,7 +397,6 @@ def visualize_unsigned_orientations_max(model, image_shape=(224, 224), pixels_pe
         print(f"  Calculated n_cells_in_image: ({n_cells_y_img}, {n_cells_x_img})")
         return
 
-    # Expected length of the HOG feature vector
     expected_hog_feature_len = n_blocks_y * n_blocks_x * cells_per_block[0] * cells_per_block[1] * orientations
 
     if len(weights) != expected_hog_feature_len:
@@ -451,16 +417,10 @@ def visualize_unsigned_orientations_max(model, image_shape=(224, 224), pixels_pe
     angle_step = np.pi / orientations
     line_half_len = min(pixels_per_cell) * 0.4
 
-    # This loop iterates over cells in the image grid.
-    # The indexing weights[start_idx:end_idx] assumes that the HOG feature vector's
-    # elements, after block processing, can be mapped sequentially to image cells
-    # when n_blocks_y * n_blocks_x * cpb_y * cpb_x == n_cells_y_img * n_cells_x_img.
-    # This condition holds for your specific training parameters (e.g., full image block).
     for cell_idx_img in range(n_total_cells_img):
         y_cell = cell_idx_img // n_cells_x_img
         x_cell = cell_idx_img % n_cells_x_img
 
-        # Determine the slice of weights corresponding to this image cell's orientations
         start_idx_in_weights = cell_idx_img * orientations
         end_idx_in_weights = start_idx_in_weights + orientations
         
@@ -485,10 +445,8 @@ def visualize_unsigned_orientations_max(model, image_shape=(224, 224), pixels_pe
 
     upscaled_heatmap = np.kron(heatmap, np.ones(pixels_per_cell))
 
-    # Upscale the heatmap for better resolution
     upscaled_heatmap = np.kron(heatmap, np.ones(pixels_per_cell))
     
-    # Plot the heatmap
     im = plt.imshow(upscaled_heatmap, cmap='viridis', extent=(0, image_shape[1], image_shape[0], 0))
     plt.colorbar(im, label='Max Absolute Weight per Cell')
 
@@ -512,24 +470,21 @@ def visualize_signed_orientations_max(model, image_shape=(224, 224), pixels_per_
 
     if n_blocks_y <= 0 or n_blocks_x <= 0:
         print(f"Invalid HOG parameters leading to non-positive number of blocks: n_blocks_y={n_blocks_y}, n_blocks_x={n_blocks_x}.")
-        # ... (rest of the error message)
         return
 
     expected_hog_feature_len = n_blocks_y * n_blocks_x * cells_per_block[0] * cells_per_block[1] * orientations
 
     if len(weights) != expected_hog_feature_len:
         print(f"Weight vector length mismatch: Actual {len(weights)} != Expected {expected_hog_feature_len}")
-        # ... (rest of the error message)
         return
 
     n_total_cells_img = n_cells_y_img * n_cells_x_img
-    # Global max absolute weight for opacity normalization of lines
     max_abs_line_weight = np.max(np.abs(weights)) if len(weights) > 0 else 1.0
-    if max_abs_line_weight == 0: max_abs_line_weight = 1.0 # Avoid division by zero
+    if max_abs_line_weight == 0: max_abs_line_weight = 1.0
 
     heatmap_signed_dominant = np.zeros((n_cells_y_img, n_cells_x_img))
 
-    plt.figure(figsize=(12, 10)) # Increased figure size slightly
+    plt.figure(figsize=(12, 10))
     ax = plt.gca()
 
     angle_step = np.pi / orientations
@@ -545,7 +500,6 @@ def visualize_signed_orientations_max(model, image_shape=(224, 224), pixels_per_
         cell_orientations_weights = weights[start_idx_in_weights:end_idx_in_weights]
 
         if len(cell_orientations_weights) > 0:
-            # For heatmap: store the signed weight of the most dominant orientation
             dominant_idx = np.argmax(np.abs(cell_orientations_weights))
             heatmap_signed_dominant[y_cell, x_cell] = cell_orientations_weights[dominant_idx]
         else:
@@ -561,11 +515,11 @@ def visualize_signed_orientations_max(model, image_shape=(224, 224), pixels_per_
                 weight_val = cell_orientations_weights[ori_idx]
                 opacity = np.abs(weight_val) / max_abs_line_weight
                 
-                line_color_rgb = (0.5, 0.5, 0.5) # Default grey for zero weight
-                if weight_val > 1e-6: # Threshold to avoid tiny positives being too red
-                    line_color_rgb = (1, 0, 0) # Red for positive
-                elif weight_val < -1e-6: # Threshold for tiny negatives
-                    line_color_rgb = (0, 0, 1) # Blue for negative
+                line_color_rgb = (0.5, 0.5, 0.5)
+                if weight_val > 1e-6:
+                    line_color_rgb = (1, 0, 0) 
+                elif weight_val < -1e-6:
+                    line_color_rgb = (0, 0, 1)
 
                 dx = np.cos(angle) * line_half_len
                 dy = -np.sin(angle) * line_half_len
@@ -576,10 +530,8 @@ def visualize_signed_orientations_max(model, image_shape=(224, 224), pixels_per_
 
     upscaled_heatmap = np.kron(heatmap_signed_dominant, np.ones(pixels_per_cell))
     
-    # Determine color limits for the heatmap, centered at 0
     heatmap_max_abs_val = np.max(np.abs(heatmap_signed_dominant)) if heatmap_signed_dominant.size > 0 else 1.0
-    if heatmap_max_abs_val == 0: heatmap_max_abs_val = 1.0 # Avoid vmin=vmax if all zeros
-
+    if heatmap_max_abs_val == 0: heatmap_max_abs_val = 1.0
     im = plt.imshow(upscaled_heatmap, cmap='seismic', 
                     extent=(0, image_shape[1], image_shape[0], 0),
                     vmin=-heatmap_max_abs_val, vmax=heatmap_max_abs_val)
@@ -587,9 +539,115 @@ def visualize_signed_orientations_max(model, image_shape=(224, 224), pixels_per_
 
     ax.set_xticks(np.arange(0, image_shape[1] + 1, pixels_per_cell[1]), minor=True)
     ax.set_yticks(np.arange(0, image_shape[0] + 1, pixels_per_cell[0]), minor=True)
-    ax.grid(which='minor', color='grey', linestyle='-', linewidth=0.5, alpha=0.5) # Grid less prominent
+    ax.grid(which='minor', color='grey', linestyle='-', linewidth=0.5, alpha=0.5)
     ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False,
                    labelbottom=False, labelleft=False)
 
     plt.title('HOG Orientation Visualization (Signed Weights)')
     plt.show()
+
+def visualize_hog_weights_corrected(model, image_shape=(224, 224), pixels_per_cell=(32, 32), 
+                          orientations=72, cells_per_block=(3, 3)):
+    """
+    Visualize HOG weights from a linear model by properly accounting for block normalization.
+    
+    NOTE: THIS IS A CORRECTED VERSION OF THE PREVIOUS FUNCTIONS FOR VISUALIZING HOG WEIGHTS.
+    """
+    weights = model.coef_[0]
+    
+    n_cells_y_img = image_shape[0] // pixels_per_cell[0]
+    n_cells_x_img = image_shape[1] // pixels_per_cell[1]
+    
+    n_blocks_y = (n_cells_y_img - cells_per_block[0]) + 1
+    n_blocks_x = (n_cells_x_img - cells_per_block[1]) + 1
+    
+    expected_hog_feature_len = n_blocks_y * n_blocks_x * cells_per_block[0] * cells_per_block[1] * orientations
+    
+    if len(weights) != expected_hog_feature_len:
+        print(f"Weight vector length mismatch: Actual {len(weights)} != Expected {expected_hog_feature_len}")
+        print(f"  Used parameters for expected length calculation:")
+        print(f"    Image shape: {image_shape}, Pixels per cell: {pixels_per_cell}")
+        print(f"    Orientations: {orientations}, Cells per block: {cells_per_block}")
+        print(f"    Calculated n_cells_in_image: ({n_cells_y_img}, {n_cells_x_img})")
+        print(f"    Calculated n_blocks: ({n_blocks_y}, {n_blocks_x})")
+        return
+    
+    cell_weights = np.zeros((n_cells_y_img, n_cells_x_img, orientations))
+    cell_counts = np.zeros((n_cells_y_img, n_cells_x_img, orientations))
+    
+    for by in range(n_blocks_y):
+        for bx in range(n_blocks_x):
+            for cy in range(cells_per_block[0]):
+                for cx in range(cells_per_block[1]):
+                    cell_y = by + cy
+                    cell_x = bx + cx
+                    
+                    if cell_y >= n_cells_y_img or cell_x >= n_cells_x_img:
+                        continue
+                    
+                    block_idx = by * n_blocks_x + bx
+                    cell_idx_in_block = cy * cells_per_block[1] + cx
+                    start_idx = (block_idx * cells_per_block[0] * cells_per_block[1] + cell_idx_in_block) * orientations
+                    end_idx = start_idx + orientations
+                    
+                    cell_weights[cell_y, cell_x, :] += weights[start_idx:end_idx]
+                    cell_counts[cell_y, cell_x, :] += 1
+    
+    mask = cell_counts > 0
+    cell_weights[mask] /= cell_counts[mask]
+    
+    max_weight = np.max(np.abs(cell_weights))
+    
+    heatmap = np.max(np.abs(cell_weights), axis=2)
+    
+    plt.figure(figsize=(12, 12))
+    ax = plt.gca()
+    
+    angle_step = np.pi / orientations
+    line_half_len = min(pixels_per_cell) * 0.4
+    
+    for y_cell in range(n_cells_y_img):
+        for x_cell in range(n_cells_x_img):
+            center_x = x_cell * pixels_per_cell[1] + pixels_per_cell[1] / 2
+            center_y = y_cell * pixels_per_cell[0] + pixels_per_cell[0] / 2
+            
+            cell_ori_weights = cell_weights[y_cell, x_cell, :]
+            
+            for ori_idx in range(orientations):
+                angle = ori_idx * angle_step
+                weight_val = cell_ori_weights[ori_idx]
+                
+                opacity = np.abs(weight_val) / max_weight if max_weight > 0 else 0
+                
+                if opacity < 0.05:
+                    continue
+                
+                dx = np.cos(angle) * line_half_len
+                dy = -np.sin(angle) * line_half_len
+                
+                if weight_val > 0:
+                    color = (0, 1, 0, opacity)  # Green for positive weights
+                else:
+                    color = (1, 0, 0, opacity)  # Red for negative weights
+                
+                ax.plot([center_x - dx, center_x + dx],
+                        [center_y - dy, center_y + dy],
+                        color=color, linewidth=2)
+    
+    upscaled_heatmap = np.kron(heatmap, np.ones(pixels_per_cell))
+    
+    im = plt.imshow(upscaled_heatmap, cmap='viridis', extent=(0, image_shape[1], image_shape[0], 0), alpha=0.7)
+    plt.colorbar(im, label='Max Absolute Weight per Cell')
+    
+    ax.set_xticks(np.arange(0, image_shape[1] + 1, pixels_per_cell[1]), minor=True)
+    ax.set_yticks(np.arange(0, image_shape[0] + 1, pixels_per_cell[0]), minor=True)
+    ax.grid(which='minor', color='white', linestyle='-', linewidth=0.8, alpha=0.5)
+    
+    ax.tick_params(axis='both', which='both', bottom=False, top=False, left=False, right=False,
+                   labelbottom=False, labelleft=False)
+    
+    plt.title('HOG Feature Weights Visualization (Unsigned Orientations)')
+    plt.tight_layout()
+    plt.show()
+    
+    return cell_weights
